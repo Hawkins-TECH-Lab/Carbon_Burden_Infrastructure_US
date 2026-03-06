@@ -1,0 +1,244 @@
+---
+title: "check_ps_results"
+format: html
+editor: visual
+---
+
+```{r}
+
+library(WeightIt)
+```
+
+# Transportation Density
+
+```{r}
+
+load('/work/hawkins_lab/vulcan/results/weight_it_transport_density-V3.RData')
+
+```
+
+## OptWeight - best (lots of trimming though)
+
+```{r}
+new_W_optweight = trim(W_optweight, at = 0.95, lower = FALSE, drop = FALSE)
+w <- new_W_optweight$weights
+threshold <- quantile(w, probs = 0.085)
+
+w[w < threshold] <- threshold
+new_W_optweight$weights <- w
+summary(new_W_optweight)
+```
+
+```{r}
+cobalt::bal.tab(new_W_optweight)
+```
+Select first model because ESS much less important than covariate balance!
+
+```{r}
+new_W_optweight1 = trim(W_optweight, at = 0.9, lower = TRUE, drop = FALSE)
+summary(new_W_optweight1)
+```
+
+```{r}
+cobalt::bal.tab(new_W_optweight1)
+```
+## Export top weights for each 5D to a csv
+
+```{r}
+df <- data.frame(dens = new_W_optweight$weights)
+```
+
+# Transportation Diversity
+
+```{r}
+load('/work/hawkins_lab/vulcan/results/weight_it_transport_diversity.RData')
+```
+
+## CBPS - best
+
+```{r}
+summary(W_cbps)
+```
+
+```{r}
+cobalt::bal.tab(W_cbps)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df$div = W_cbps$weights
+```
+
+# Transportation Design
+
+```{r}
+load('/work/hawkins_lab/vulcan/results/weight_it_transport_design.RData')
+
+
+```
+
+## CBPS - best
+
+```{r}
+summary(W_cbps)
+```
+
+```{r}
+cobalt::bal.tab(W_cbps)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df$des = W_cbps$weights
+```
+
+# Transportation Distance - log
+
+```{r}
+load('/work/hawkins_lab/vulcan/results/weight_it_transport_distance_log.RData')
+
+```
+
+## Entropy Balance - best
+
+```{r}
+summary(W_ebal)
+```
+
+```{r}
+cobalt::bal.tab(W_ebal)
+```
+## Export top weights for each 5D to a csv
+
+```{r}
+df$dist = W_ebal$weights
+```
+
+# Transportation Destination
+
+```{r}
+
+load('/work/hawkins_lab/vulcan/results/weight_it_transport_destination-V3.RData')
+
+```
+
+## CBPS - best (trim more?)
+
+```{r}
+summary(W_cbps)
+```
+
+```{r}
+cobalt::bal.tab(W_cbps)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df$dest = W_cbps$weights
+
+write.csv(df, file = file.path("/work/hawkins_lab/vulcan/results/tran_weights.csv"),row.names = FALSE)
+
+```
+
+# Electricity Density
+
+```{r}
+load('/work/hawkins_lab/vulcan/results/weight_it_electricity_density.RData')
+
+
+```
+
+## Entropy Balance - best
+
+```{r}
+new_W_ebal = trim(W_ebal, at = 0.99, lower = TRUE, drop = FALSE)
+summary(new_W_ebal)
+```
+
+```{r}
+
+cobalt::bal.tab(new_W_ebal)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df <- data.frame(dens = new_W_ebal$weights)
+
+```
+
+# Electricity Diversity
+
+```{r}
+load('/work/hawkins_lab/vulcan/results/weight_it_electricity_diversity.RData')
+
+```
+
+## CBPS - best
+
+```{r}
+summary(W_cbps)
+```
+
+```{r}
+cobalt::bal.tab(W_cbps)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df$div = W_cbps$weights
+write.csv(df, file = file.path("/work/hawkins_lab/vulcan/results/elec_weights.csv"), row.names = FALSE)
+```
+
+# Residential Density
+
+```{r}
+
+load('/work/hawkins_lab/vulcan/results/weight_it_residential_density.RData')
+
+
+```
+
+## CBPS - best
+
+```{r}
+summary(W_cbps)
+```
+
+```{r}
+cobalt::bal.tab(W_cbps)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df <- data.frame(dens = W_cbps$weights)
+```
+
+# Residential Diversity
+
+```{r}
+load('/work/hawkins_lab/vulcan/results/weight_it_residential_diversity.RData')
+
+```
+
+## CBPS - best
+
+```{r}
+summary(W_cbps)
+```
+
+```{r}
+cobalt::bal.tab(W_cbps)
+```
+
+## Export top weights for each 5D to a csv
+
+```{r}
+df$div = W_cbps$weights
+write.csv(df, file = file.path("/work/hawkins_lab/vulcan/results/res_weights.csv"), row.names = FALSE)
+```
