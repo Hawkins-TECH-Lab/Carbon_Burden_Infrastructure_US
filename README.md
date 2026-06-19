@@ -1,4 +1,4 @@
-# Multiscale Carbon Burden of Infrastructure in the United States
+# Multi-Scale Carbon Burden of Infrastructure in the United States
 
 **Jason Hawkins** — Department of Civil Engineering, University of Calgary
 
@@ -31,101 +31,146 @@ A key methodological contribution is treating transportation emissions as **prod
 
 ## Repository Structure
 
-All scripts are in the root directory. The analysis proceeds in the numbered sequence below.
+```
+Carbon_Burden_Infrastructure_US/
+│
+├── 01_data_processing/
+│   ├── 0_scope2_processing.ipynb
+│   ├── 1_vulcan_processing.ipynb
+│   ├── 1_join_data.ipynb
+│   ├── 2_climate_co2_grid_processing.ipynb
+│   ├── cbsa_processing.ipynb
+│   └── vulcan_epa_v1.py
+│
+├── 02_confounder_selection/
+│   ├── 3_correlation_analysis.ipynb
+│   ├── correlation_analysis.ipynb
+│   ├── 4_confounder_analysis.ipynb
+│   ├── 4_confounder_analysis_transport.ipynb
+│   ├── confounder_analysis.ipynb
+│   ├── confounder_model-transpo.pyw
+│   ├── confounder_model-elec.pyw
+│   └── confounder_model-res-energy.pyw
+│
+├── 03_propensity_scores/
+│   ├── weight_it_transport_density.R / *-V2.R / *-V3.R / *-log.R / *-V2-log.R / *-V3-log.R
+│   ├── weight_it_transport_diversity.R
+│   ├── weight_it_transport_design.R
+│   ├── weight_it_transport_distance.R / *-log.R
+│   ├── weight_it_transport_destination.R / *-V3.R / *-log.R / *-V3-log.R
+│   ├── weight_it_electricity_density.R
+│   ├── weight_it_electricity_diversity.R
+│   ├── weight_it_electricity_robustness.R
+│   ├── weight_it_elec.R
+│   ├── weight_it_residential_density.R / *-log.R
+│   ├── weight_it_residential_diversity.R
+│   ├── weight_it_residential (1).R
+│   ├── weight_it_transport.R
+│   └── check_ps_results-V2.qmd
+│
+├── 04_dr_estimation/
+│   ├── DR_Analysis_WeightIt.ipynb
+│   ├── DR_Analysis_WeightIt-tran-dens.ipynb
+│   ├── DR_Analysis_WeightIt-tran-div.ipynb
+│   ├── DR_Analysis_WeightIt-tran-des.ipynb
+│   ├── DR_Analysis_WeightIt-tran-dest.ipynb
+│   ├── DR_Analysis_WeightIt-tran-dist.ipynb
+│   ├── DR_Analysis_WeightIt-elec-dens.ipynb
+│   ├── DR_Analysis_WeightIt-elec-div.ipynb
+│   ├── DR_Analysis_WeightIt-res-dens.ipynb
+│   ├── DR_Analysis_WeightIt-res-div.ipynb
+│   ├── check_dr_results.ipynb
+│   └── dr_graphs.ipynb
+│
+├── 05_spatial_regression/
+│   ├── build_spatial_eigen_vectors.ipynb
+│   ├── Moran_I_PyMC_Models.ipynb
+│   ├── ols_outcome_analysis.ipynb
+│   ├── ols_outcome_analysis-SEV (1).ipynb
+│   ├── ols_outcome_analysis-SAR.ipynb / *-V2.ipynb / *-V3.ipynb
+│   ├── ols_outcome_analysis-SEM.ipynb
+│   └── ols_outcome_analysis-SEM-Dk.ipynb
+│
+└── README.md
+```
 
-### Data Processing (Python — Jupyter Notebooks)
+---
 
-| Notebook | Description |
+## Script Descriptions
+
+### 01 — Data Processing (Python)
+
+| File | Description |
 |---|---|
 | `0_scope2_processing.ipynb` | Process Vulcan v4.0 Scope 2 (consumption-based electricity) emissions |
 | `1_vulcan_processing.ipynb` | Areal interpolation of Vulcan Scope 1 gridcells to census block groups (CBGs) |
 | `1_join_data.ipynb` | Join Vulcan emissions with EPA Smart Location Database CBG variables |
 | `2_climate_co2_grid_processing.ipynb` | Process NOAA climate and eGrid emissions factor data |
 | `cbsa_processing.ipynb` | Aggregate CBG variables to core-based statistical area (CBSA) metropolitan scale |
+| `vulcan_epa_v1.py` | Utility functions for Vulcan–EPA data handling |
 
-### Exploratory & Confounder Analysis (Python — Jupyter Notebooks)
+### 02 — Confounder Selection (Python)
 
-| Notebook | Description |
+| File | Description |
 |---|---|
 | `3_correlation_analysis.ipynb` | Correlation heatmaps for confounder variable screening |
 | `correlation_analysis.ipynb` | Extended correlation analysis |
 | `4_confounder_analysis.ipynb` | Conditional variable importance via BART (residential electricity & energy) |
 | `4_confounder_analysis_transport.ipynb` | Conditional variable importance via BART (transportation) |
 | `confounder_analysis.ipynb` | Confounder analysis summary |
-
-### Confounder Models (Python — `.pyw` scripts)
-
-| Script | Description |
-|---|---|
 | `confounder_model-transpo.pyw` | BART confounder model for transportation sector |
 | `confounder_model-elec.pyw` | BART confounder model for residential electricity sector |
 | `confounder_model-res-energy.pyw` | BART confounder model for residential non-electricity energy sector |
 
-### Propensity Score Estimation & Balance Diagnostics (R)
+### 03 — Propensity Score Estimation (R)
 
-GPS estimation using `WeightIt`. Each script covers one treatment–outcome combination, with multiple versions reflecting log transformations and model iterations.
+GPS estimation using `WeightIt`. Each script covers one treatment–outcome combination; versioned files (`-V2`, `-V3`, `-log`) reflect iterations during model development, with the highest-numbered log variant being the preferred final specification for each treatment.
 
-**Transportation (5 treatments):**
+| Scripts | Sector | Treatment |
+|---|---|---|
+| `weight_it_transport_density*.R` | Transportation | Population density |
+| `weight_it_transport_diversity.R` | Transportation | Land use diversity |
+| `weight_it_transport_design.R` | Transportation | Roadway design |
+| `weight_it_transport_distance*.R` | Transportation | Distance to transit |
+| `weight_it_transport_destination*.R` | Transportation | Destination accessibility |
+| `weight_it_transport.R` | Transportation | Combined |
+| `weight_it_electricity_density.R` | Residential electricity | Population density |
+| `weight_it_electricity_diversity.R` | Residential electricity | Land use diversity |
+| `weight_it_electricity_robustness.R` | Residential electricity | Robustness checks |
+| `weight_it_elec.R` | Residential electricity | Combined |
+| `weight_it_residential_density*.R` | Residential energy | Population density |
+| `weight_it_residential_diversity.R` | Residential energy | Land use diversity |
+| `weight_it_residential (1).R` | Residential energy | Combined |
+| `check_ps_results-V2.qmd` | All | Balance diagnostics report (Quarto) |
 
-| Script | Treatment |
-|---|---|
-| `weight_it_transport_density.R` / `*-V2.R` / `*-V3.R` / `*-log.R` / `*-V2-log.R` / `*-V3-log.R` | Population density |
-| `weight_it_transport_diversity.R` | Land use diversity |
-| `weight_it_transport_design.R` | Roadway design |
-| `weight_it_transport_distance.R` / `*-log.R` | Distance to transit |
-| `weight_it_transport_destination.R` / `*-V3.R` / `*-log.R` / `*-V3-log.R` | Destination accessibility |
-
-**Residential electricity (2 treatments):**
-
-| Script | Treatment |
-|---|---|
-| `weight_it_electricity_density.R` | Population density |
-| `weight_it_electricity_diversity.R` | Land use diversity |
-| `weight_it_electricity_robustness.R` | Robustness checks |
-| `weight_it_elec.R` | Combined electricity GPS |
-
-**Residential non-electricity energy (2 treatments):**
-
-| Script | Treatment |
-|---|---|
-| `weight_it_residential_density.R` / `*-log.R` | Population density |
-| `weight_it_residential_diversity.R` | Land use diversity |
-| `weight_it_residential (1).R` | Combined residential GPS |
-
-### Doubly Robust ATE Estimation (Python — Jupyter Notebooks / R)
+### 04 — Doubly Robust ATE Estimation (Python)
 
 | File | Description |
 |---|---|
 | `DR_Analysis_WeightIt.ipynb` | Main DR ATE estimation notebook |
 | `DR_Analysis_WeightIt-tran-dens.ipynb` | Transportation × population density |
 | `DR_Analysis_WeightIt-tran-div.ipynb` | Transportation × land use diversity |
-| `DR_Analysis_WeightIt-tran-des.ipynb` / `*-dest.ipynb` | Transportation × roadway design / destination |
+| `DR_Analysis_WeightIt-tran-des.ipynb` | Transportation × roadway design |
+| `DR_Analysis_WeightIt-tran-dest.ipynb` | Transportation × destination accessibility |
 | `DR_Analysis_WeightIt-tran-dist.ipynb` | Transportation × distance to transit |
 | `DR_Analysis_WeightIt-elec-dens.ipynb` | Residential electricity × population density |
 | `DR_Analysis_WeightIt-elec-div.ipynb` | Residential electricity × land use diversity |
 | `DR_Analysis_WeightIt-res-dens.ipynb` | Residential energy × population density |
 | `DR_Analysis_WeightIt-res-div.ipynb` | Residential energy × land use diversity |
 | `check_dr_results.ipynb` | DR results diagnostics and validation |
-| `dr_graphs.ipynb` | Reproduce Figure 2, 3, and 4 (ATE posterior distributions) |
+| `dr_graphs.ipynb` | Reproduce Figures 2, 3, and 4 (ATE posterior distributions) |
 
-### Joint Spatial Regression (Python — Jupyter Notebooks)
-
-| Notebook | Description |
-|---|---|
-| `ols_outcome_analysis.ipynb` | Base OLS joint treatment models |
-| `ols_outcome_analysis-SEV (1).ipynb` | OLS with spatial eigenvectors |
-| `ols_outcome_analysis-SAR.ipynb` / `*-V2.ipynb` / `*-V3.ipynb` | Spatial autoregressive specifications |
-| `ols_outcome_analysis-SEM.ipynb` | SEM specifications |
-| `ols_outcome_analysis-SEM-Dk.ipynb` | SLX+SEM with 10 km inverse-distance weights (preferred specification) |
-| `build_spatial_eigen_vectors.ipynb` | Construct spatial eigenvectors for residual autocorrelation control |
-| `Moran_I_PyMC_Models.ipynb` | Bayesian posterior estimation of Moran's I statistics |
-
-### Diagnostics & Supporting Files
+### 05 — Joint Spatial Regression (Python)
 
 | File | Description |
 |---|---|
-| `check_ps_results-V2.qmd` | Propensity score balance diagnostics report (Quarto) |
-| `vulcan_epa_v1.py` | Utility functions for Vulcan–EPA data handling |
+| `build_spatial_eigen_vectors.ipynb` | Construct spatial eigenvectors for residual autocorrelation control |
+| `Moran_I_PyMC_Models.ipynb` | Bayesian posterior estimation of Moran's I statistics |
+| `ols_outcome_analysis.ipynb` | Base OLS joint treatment models |
+| `ols_outcome_analysis-SEV (1).ipynb` | OLS with spatial eigenvectors |
+| `ols_outcome_analysis-SAR*.ipynb` | Spatial autoregressive specifications |
+| `ols_outcome_analysis-SEM.ipynb` | SEM specification |
+| `ols_outcome_analysis-SEM-Dk.ipynb` | SLX+SEM with 10 km inverse-distance weights **(preferred specification)** |
 
 ---
 
@@ -161,7 +206,7 @@ spreg
 scipy
 matplotlib
 pymc
-bartpy  # or equivalent BART implementation
+bartpy
 jupyter
 ```
 
@@ -181,38 +226,36 @@ The Quarto document (`check_ps_results-V2.qmd`) requires [Quarto](https://quarto
 
 ## Suggested Execution Order
 
-```
+```bash
 # 1. Data processing
-0_scope2_processing.ipynb
-1_vulcan_processing.ipynb
-1_join_data.ipynb
-2_climate_co2_grid_processing.ipynb
-cbsa_processing.ipynb
+01_data_processing/0_scope2_processing.ipynb
+01_data_processing/1_vulcan_processing.ipynb
+01_data_processing/1_join_data.ipynb
+01_data_processing/2_climate_co2_grid_processing.ipynb
+01_data_processing/cbsa_processing.ipynb
 
-# 2. Exploratory analysis & confounder selection
-3_correlation_analysis.ipynb
-4_confounder_analysis.ipynb
-4_confounder_analysis_transport.ipynb
-confounder_model-transpo.pyw
-confounder_model-elec.pyw
-confounder_model-res-energy.pyw
+# 2. Confounder selection
+02_confounder_selection/3_correlation_analysis.ipynb
+02_confounder_selection/4_confounder_analysis.ipynb
+02_confounder_selection/4_confounder_analysis_transport.ipynb
+02_confounder_selection/confounder_model-transpo.pyw
+02_confounder_selection/confounder_model-elec.pyw
+02_confounder_selection/confounder_model-res-energy.pyw
 
 # 3. Propensity score estimation (R)
-weight_it_transport_density-V3-log.R   # (and other weight_it_*.R scripts)
-weight_it_electricity_density.R
-weight_it_residential_density.R
-check_ps_results-V2.qmd               # balance diagnostics
+03_propensity_scores/weight_it_transport_density-V3-log.R  # preferred; run all weight_it_*.R
+03_propensity_scores/check_ps_results-V2.qmd               # balance diagnostics
 
 # 4. Doubly robust ATE estimation
-DR_Analysis_WeightIt-tran-dens.ipynb  # (and other DR_Analysis_*.ipynb scripts)
-check_dr_results.ipynb
-dr_graphs.ipynb
+04_dr_estimation/DR_Analysis_WeightIt-tran-dens.ipynb      # run all DR_Analysis_*.ipynb
+04_dr_estimation/check_dr_results.ipynb
+04_dr_estimation/dr_graphs.ipynb
 
 # 5. Joint spatial regression
-build_spatial_eigen_vectors.ipynb
-ols_outcome_analysis.ipynb
-ols_outcome_analysis-SEM-Dk.ipynb     # preferred specification
-Moran_I_PyMC_Models.ipynb
+05_spatial_regression/build_spatial_eigen_vectors.ipynb
+05_spatial_regression/ols_outcome_analysis.ipynb
+05_spatial_regression/ols_outcome_analysis-SEM-Dk.ipynb    # preferred specification
+05_spatial_regression/Moran_I_PyMC_Models.ipynb
 ```
 
 ---
@@ -222,11 +265,11 @@ Moran_I_PyMC_Models.ipynb
 If you use this code or data, please cite:
 
 ```bibtex
-@article{hawkins2025carbon,
+@article{hawkins2026carbon,
   title   = {Multi-Scale Carbon Burden of Infrastructure in the United States},
   author  = {Hawkins, Jason},
   journal = {npj Sustainable Mobility and Transport},
-  year    = {2025},
+  year    = {2026},
   doi     = {}
 }
 ```
